@@ -1,31 +1,34 @@
 class EvaluadorFactory:
     """
-    Factory que recibe el TIPO de profesor (guia, informante)
-    y devuelve sus permisos y cuánto vale su nota.
+    Fábrica para crear configuraciones de evaluadores.
+    Recibe un tipo (string) y devuelve el ROL y TIPO oficial para la BD.
     """
-    
     @staticmethod
-    def crear_perfil(tipo_profe):
-        tipo = tipo_profe.lower().strip()
-        
-        if "guia" in tipo:
+    def crear_perfil(tipo_evaluador):
+        # Limpiamos la entrada
+        tipo = tipo_evaluador.lower().strip()
+
+        if tipo == "guia":
             return {
-                "rol_asignado": "Profesor Guía",
-                "peso_voto": 0.60,  # El guía decide el 60% de la nota final
-                "descripcion": "Responsable principal del alumno."
+                "tipo": "Profesor Guía",
+                "rol": "Supervisor Principal", # Este va a la columna 'rol'
+                "permisos": "total"
             }
         
-        elif "informante" in tipo or "comision" in tipo:
+        elif tipo == "comision":
             return {
-                "rol_asignado": "Comisión Evaluadora",
-                "peso_voto": 0.40,  # La comisión decide el 40%
-                "descripcion": "Revisa el documento y evalúa la defensa."
+                "tipo": "Comisión Evaluadora",
+                "rol": "Evaluador Externo", # Este va a la columna 'rol'
+                "permisos": "lectura_nota"
             }
-            
+        
+        elif tipo == "profesor":
+            return {
+                "tipo": "Profesor Informante",
+                "rol": "Revisor Técnico", # Este va a la columna 'rol'
+                "permisos": "lectura"
+            }
+        
         else:
-            # Caso por defecto (Invitado)
-            return {
-                "rol_asignado": "Observador",
-                "peso_voto": 0.0,   # No pone nota
-                "descripcion": "Invitado a la defensa."
-            }
+            return None
+            

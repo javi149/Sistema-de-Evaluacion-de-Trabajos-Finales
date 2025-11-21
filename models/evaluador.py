@@ -10,6 +10,7 @@ class Evaluador(db.Model):
     # --- TUS COLUMNAS DE FACTORY (Benja) ---
     rol_asignado = db.Column(db.String(100)) # Para guardar "Profesor Guía"
     peso_voto = db.Column(db.Float)          # Para guardar "0.6"
+    tipo = db.Column(db.String(50)) # Guia, Comision, Informante
     # ---------------------------------------
 
     # Relación con trabajos (opcional por ahora, pero útil a futuro)
