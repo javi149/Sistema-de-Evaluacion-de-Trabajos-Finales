@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from database import db
 from config.config import ConfiguracionGlobal
@@ -44,32 +44,41 @@ def create_app():
     # Agregamos ruta de prueba de instituciones
     from flask import jsonify
     from models.instituciones import Institucion
-    @app.route('/api/instituciones', methods=['GET'])
-    def obtener_instituciones():
-        try:
-            lista = Institucion.query.all()
-            resultado = []
-            for inst in lista:
-                resultado.append({
-                    'id': inst.id,
-                    'nombre': inst.nombre,
-                    'direccion': inst.direccion
-                })
-            return jsonify(resultado)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+    # Ruta inteligente: Sirve para LEER (GET) y CREAR (POST)
+    @app.route('/api/instituciones', methods=['GET', 'POST'])
+    def gestionar_instituciones():
+        if request.method == 'POST':
+            # 1. Recibimos los datos que manda Postman
+            data = request.get_json()
+            
+            # 2. Creamos la nueva institución
+            nueva_inst = Institucion(
+                nombre=data.get('nombre'),
+                direccion=data.get('direccion'),
+                contacto=data.get('contacto') # Asegúrate de que tu modelo tenga este campo, si no bórralo
+            )
+            
+            # 3. Guardamos en Base de Datos
+            db.session.add(nueva_inst)
+            db.session.commit()
+            
+            return jsonify({'mensaje': 'Institución creada con éxito', 'id': nueva_inst.id}), 201
 
-    return app
+        # Si no es POST, entonces es GET (Devolver lista)
+        lista = Institucion.query.all()
+        resultado = []
+        for inst in lista:
+            resultado.append({
+                'id': inst.id,
+                'nombre': inst.nombre,
+                'direccion': inst.direccion
+            })
+        return jsonify(resultado)
 
-# --- CAMBIO IMPORTANTE AQUÍ ABAJO ---
-
-# 1. Creamos la app AQUÍ AFUERA (Globalmente) para que Gunicorn la vea
 app = create_app()
 
-# 2. Opcional: Aseguramos que las tablas existan al iniciar
 with app.app_context():
     db.create_all()
 
-# 3. El bloque main solo se usa para correr en local
 if __name__ == "__main__":
     app.run(debug=True)
