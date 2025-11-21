@@ -1,44 +1,34 @@
-import os
 from flask import Flask
-from database import db
-from config.config import ConfiguracionGlobal
-from routes.estudiantes import estudiantes_bp
+from flask_cors import CORS
+from dotenv import load_dotenv
+import os
 
-# Intentar cargar dotenv si existe, sino continuar
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+# 1. IMPORTAMOS LA DB DESDE TU ARCHIVO database.py
+from database import db 
+# 2. IMPORTAMOS LAS RUTAS
+from routes.notas_routes import notas_bp 
 
-def create_app():
-    app = Flask(__name__)
-    
-    # Configuración de Base de Datos (Prioridad: MySQL via .env, sino SQLite local)
-    db_uri = os.getenv('DATABASE_URL')
-    if db_uri:
-        app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///evaluacion.db'
+load_dotenv()
 
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app = Flask(__name__)
+CORS(app)
 
-    db.init_app(app)
-    
-    # Inicializar Singleton de Configuración
-    ConfiguracionGlobal()
+# Configuración
+user = os.getenv('DB_USER')
+password = os.getenv('DB_PASSWORD')
+host = os.getenv('DB_HOST')
+port = os.getenv('DB_PORT')
+dbname = os.getenv('DB_NAME')
 
-    # Registrar Rutas
-    app.register_blueprint(estudiantes_bp)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{user}:{password}@{host}:{port}/{dbname}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    @app.route("/ping")
-    def ping():
-        return {"msg": "pong", "status": "ok"}
+# --- 3. INICIALIZAR LA APP CON LA DB QUE IMPORTAMOS ---
+db.init_app(app) 
+# ------------------------------------------------------
 
-    return app
+# Registrar rutas
+app.register_blueprint(notas_bp)
 
-if __name__ == "__main__":
-    app = create_app()
-    with app.app_context():
-        db.create_all() # Crea las tablas vacias si no existen
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
