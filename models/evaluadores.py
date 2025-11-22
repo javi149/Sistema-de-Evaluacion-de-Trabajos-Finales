@@ -6,3 +6,5 @@ class Evaluador(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(120), unique=True)
+    tipo = db.Column(db.String(50))
+    rol = db.Column(db.String(100))
