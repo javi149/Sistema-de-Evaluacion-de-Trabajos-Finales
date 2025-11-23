@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app import db
+from database import db
 from models import Criterio
 
 criterios_bp = Blueprint('criterios', __name__, url_prefix='/criterios')
@@ -9,9 +9,10 @@ def listar_criterios():
     lista = Criterio.query.all()
   
     resultado = [{
-        "id": c.criterios_id, 
-        "nombre": c.nombre, 
-        "ponderacion": str(c.ponderacion) 
+        "id": c.id, 
+        "nombre": c.nombre,
+        "descripcion": c.descripcion,
+        "ponderacion": c.ponderacion
     } for c in lista]
     return jsonify(resultado)
 
@@ -25,4 +26,4 @@ def crear_criterio():
     )
     db.session.add(nuevo)
     db.session.commit()
-    return jsonify({"mensaje": "Criterio configurado", "id": nuevo.criterios_id}), 201
+    return jsonify({"mensaje": "Criterio configurado", "id": nuevo.id}), 201
